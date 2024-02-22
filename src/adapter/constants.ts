@@ -1,0 +1,1 @@
+export const ADDRESS_PROVIDER_V3 = "0x9ea7b04da02a5373317d745c1571c84aad03321d";

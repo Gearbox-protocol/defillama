@@ -1,0 +1,64 @@
+{
+  "name": "@gearbox-protocol/defillama",
+  "version": "1.0.0",
+  "description": "defillama scripts, but in ts and in one repo",
+  "main": "index.js",
+  "private": true,
+  "keywords": [
+    "gearbox"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Gearbox-protocol/defillama"
+  },
+  "license": "BUSL-1.1",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "node tsup.mjs",
+    "prepare": "husky",
+    "prettier": "prettier --write .",
+    "prettier:ci": "npx prettier --check .",
+    "lint": "eslint \"**/*.ts\" --fix",
+    "lint:ci": "eslint \"**/*.ts\"",
+    "typecheck:ci": "tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@commitlint/cli": "^18.4.4",
+    "@commitlint/config-conventional": "^18.4.4",
+    "@defillama/sdk": "^5.0.31",
+    "@gearbox-protocol/eslint-config": "2.0.0-next.2",
+    "@gearbox-protocol/prettier-config": "2.0.0-next.0",
+    "@gearbox-protocol/sdk-gov": "^1.31.2",
+    "@redstone-finance/protocol": "^0.3.6",
+    "@redstone-finance/sdk": "^0.3.6",
+    "@semantic-release/exec": "^6.0.3",
+    "eslint": "^8.56.0",
+    "ethers": "^6.0.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.1",
+    "tsup": "^8.0.2",
+    "typescript": "^5.3.3"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "eslintConfig": {
+    "root": true,
+    "extends": [
+      "@gearbox-protocol/eslint-config"
+    ]
+  },
+  "prettier": "@gearbox-protocol/prettier-config",
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": "prettier --write",
+    "*.sol": "forge fmt"
+  }
+}

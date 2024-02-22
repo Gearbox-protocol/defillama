@@ -1,0 +1,28 @@
+{
+  "branches": [
+    {
+      "name": "main"
+    },
+    {
+      "name": "next",
+      "channel": "next",
+      "prerelease": "next"
+    }
+  ],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/github",
+      {
+        "assets": ["dist"]
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "yarn build ${nextRelease.version}"
+      }
+    ]
+  ]
+}
