@@ -2,10 +2,16 @@ import type { ChainApi } from "@defillama/sdk";
 
 import { ADDRESS_PROVIDER_V3 } from "../constants";
 import { v3Abis } from "./abi";
-import { getPriceUpdates } from "./redstone";
-import type { CreditAccountData, CreditManagerData } from "./types";
+import type {
+  CreditAccountData,
+  CreditManagerData,
+  TokenAndOwner,
+} from "./types";
 
-export async function getV3TVL(block: number, api: ChainApi) {
+export async function getV3TVL(
+  block: number,
+  api: ChainApi,
+): Promise<TokenAndOwner[]> {
   const dc300 = await api.call({
     abi: v3Abis["getAddressOrRevert"],
     target: ADDRESS_PROVIDER_V3,
@@ -26,11 +32,7 @@ export async function getV3TVL(block: number, api: ChainApi) {
     creditManagers.map(cm => getV3CAs(dc300, cm.addr, block, api)),
   );
 
-  return creditManagers.map((cm, i) => ({
-    addr: cm.addr,
-    token: cm.underlying,
-    bal: caValues[i],
-  }));
+  return caValues.flat();
 }
 
 export async function getCreditManagersV3(
@@ -51,29 +53,26 @@ async function getV3CAs(
   creditManager: string,
   block: number,
   api: ChainApi,
-): Promise<string> {
-  let accs: CreditAccountData[] = await api.call({
+): Promise<TokenAndOwner[]> {
+  const accs: CreditAccountData[] = await api.call({
     // IDataCompressorV3_00__factory.createInterface().getFunction("getCreditAccountsByCreditManager").format(ethers.utils.FormatTypes.full)
     target: dc300,
     abi: v3Abis["getCreditAccountsByCreditManager"],
     params: [creditManager, []] as any,
     block,
   });
-  const priceFeedsNeeded = new Set<string>();
-  accs.forEach(acc => {
-    acc.priceFeedsNeeded.forEach(pf => priceFeedsNeeded.add(pf.toLowerCase()));
-  });
-  const priceUpdates = await getPriceUpdates(priceFeedsNeeded, block, api);
-  accs = await api.call({
-    target: dc300,
-    abi: v3Abis["getCreditAccountsByCreditManager"],
-    params: [creditManager, priceUpdates] as any,
-    block,
-  });
-  let totalValue = 0n;
-  accs.forEach(acc => {
-    totalValue += BigInt(acc.totalValue);
-  });
-
-  return totalValue.toString();
+  const result: TokenAndOwner[] = [];
+  for (const acc of accs) {
+    for (const { balance, token } of acc.balances) {
+      // reduce noize
+      if (balance !== "0" && balance !== "1") {
+        result.push({
+          addr: acc.addr,
+          bal: balance,
+          token: token,
+        });
+      }
+    }
+  }
+  return result;
 }

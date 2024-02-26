@@ -81,3 +81,9 @@ export interface CreditAccountEvent {
   ca: string | null;
   cf: string;
 }
+
+export interface TokenAndOwner {
+  addr: string;
+  token: string;
+  bal: string;
+}

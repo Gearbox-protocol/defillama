@@ -20,3 +20,9 @@ export interface CreditManagerData {
   addr: string;
   underlying: string;
 }
+
+export interface TokenAndOwner {
+  addr: string;
+  token: string;
+  bal: string;
+}

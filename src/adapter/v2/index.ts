@@ -1,5 +1,5 @@
 import type { ChainApi } from "@defillama/sdk";
-import { Contract, id } from "ethers";
+import { Contract } from "ethers";
 
 import { ADDRESS_PROVIDER_V3 } from "../constants";
 // @ts-ignore
@@ -10,9 +10,13 @@ import type {
   CreditManagerData,
   Log,
   ParsedLog,
+  TokenAndOwner,
 } from "./types";
 
-export async function getV2TVL(block: number, api: ChainApi) {
+export async function getV2TVL(
+  block: number,
+  api: ChainApi,
+): Promise<TokenAndOwner[]> {
   // Get Current CMs
   const creditManagers = await getCreditManagersV210(block, api);
   // Silently throw if no V2 CAs available

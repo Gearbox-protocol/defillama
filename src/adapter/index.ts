@@ -14,25 +14,27 @@ async function tvl(
   block: number,
   _: unknown,
   { api }: ApiParameter,
-) {
+): Promise<void> {
   // Pool TVL (Current token balances)
   const tokensAndOwners = await getPools(block, api);
 
-  // CreditAccounts TVL
+  // v1 and v2:
+  // return sum of balances of all credit accounts by credit manager in underlying
   const v1Balances = await getV1TVL(block, api);
   const v2Balances = await getV2TVL(block, api);
+  // v3 is different:
+  // return balances of each credit account
   const v3Balances = await getV3TVL(block, api);
 
   // Merge all balances for each token
   [...v1Balances, ...v2Balances, ...v3Balances].forEach(i => {
     api.add(i.token, i.bal);
-    tokensAndOwners.push([i.token, i.addr]);
   });
 
-  return api.sumTokens({ tokensAndOwners });
+  await api.sumTokens({ tokensAndOwners });
 }
 
-module.exports = {
+export default {
   hallmarks: [[1666569600, "LM begins"]],
   ethereum: {
     tvl,

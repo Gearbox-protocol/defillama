@@ -5,9 +5,17 @@ import { ADDRESS_PROVIDER_V3 } from "../constants";
 // @ts-ignore
 import { getLogs } from "../helper/cache/getLogs";
 import { v1Abis } from "./abi";
-import type { CreditAccountEvent, CreditManagerData, Log } from "./types";
+import type {
+  CreditAccountEvent,
+  CreditManagerData,
+  Log,
+  TokenAndOwner,
+} from "./types";
 
-export async function getV1TVL(block: number, api: ChainApi) {
+export async function getV1TVL(
+  block: number,
+  api: ChainApi,
+): Promise<TokenAndOwner[]> {
   const creditManagers = await getCreditManagersV1(block, api);
 
   // Silently throw if no V1 CAs available

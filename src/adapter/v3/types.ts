@@ -1,30 +1,29 @@
-import type { TokenBalanceStructOutput } from "../../../../deploy-v3/types/DataCompressorV3";
 export interface CreditManagerData {
   addr: string;
   name: string;
-  cfVersion: bigint;
+  cfVersion: string;
   creditFacade: string;
   creditConfigurator: string;
   underlying: string;
   pool: string;
-  totalDebt: bigint;
-  totalDebtLimit: bigint;
-  baseBorrowRate: bigint;
-  minDebt: bigint;
-  maxDebt: bigint;
-  availableToBorrow: bigint;
+  totalDebt: string;
+  totalDebtLimit: string;
+  baseBorrowRate: string;
+  minDebt: string;
+  maxDebt: string;
+  availableToBorrow: string;
   collateralTokens: string[];
   adapters: ContractAdapterData[];
-  liquidationThresholds: bigint[];
+  liquidationThresholds: string[];
   isDegenMode: boolean;
   degenNFT: string;
-  forbiddenTokenMask: bigint;
-  maxEnabledTokensLength: bigint;
-  feeInterest: bigint;
-  feeLiquidation: bigint;
-  liquidationDiscount: bigint;
-  feeLiquidationExpired: bigint;
-  liquidationDiscountExpired: bigint;
+  forbiddenTokenMask: string;
+  maxEnabledTokensLength: string;
+  feeInterest: string;
+  feeLiquidation: string;
+  liquidationDiscount: string;
+  feeLiquidationExpired: string;
+  liquidationDiscountExpired: string;
   quotas: QuotaInfoData[];
   lirm: LinearModelData;
   isPaused: boolean;
@@ -37,22 +36,22 @@ export interface ContractAdapterData {
 
 export interface QuotaInfoData {
   token: string;
-  rate: bigint;
-  quotaIncreaseFee: bigint;
-  totalQuoted: bigint;
-  limit: bigint;
+  rate: string;
+  quotaIncreaseFee: string;
+  totalQuoted: string;
+  limit: string;
   isActive: boolean;
 }
 
 export interface LinearModelData {
   interestModel: string;
-  version: bigint;
-  U_1: bigint;
-  U_2: bigint;
-  R_base: bigint;
-  R_slope1: bigint;
-  R_slope2: bigint;
-  R_slope3: bigint;
+  version: string;
+  U_1: string;
+  U_2: string;
+  R_base: string;
+  R_slope1: string;
+  R_slope2: string;
+  R_slope3: string;
   isBorrowingMoreU2Forbidden: boolean;
 }
 
@@ -65,33 +64,39 @@ export interface CreditAccountData {
   cmName: string;
   creditFacade: string;
   underlying: string;
-  debt: bigint;
-  cumulativeIndexLastUpdate: bigint;
-  cumulativeQuotaInterest: bigint;
-  accruedInterest: bigint;
-  accruedFees: bigint;
-  totalDebtUSD: bigint;
-  totalValue: bigint;
-  totalValueUSD: bigint;
-  twvUSD: bigint;
-  enabledTokensMask: bigint;
-  healthFactor: bigint;
-  baseBorrowRate: bigint;
-  aggregatedBorrowRate: bigint;
+  debt: string;
+  cumulativeIndexLastUpdate: string;
+  cumulativeQuotaInterest: string;
+  accruedInterest: string;
+  accruedFees: string;
+  totalDebtUSD: string;
+  totalValue: string;
+  totalValueUSD: string;
+  twvUSD: string;
+  enabledTokensMask: string;
+  healthFactor: string;
+  baseBorrowRate: string;
+  aggregatedBorrowRate: string;
   balances: TokenBalance[];
-  since: bigint;
-  cfVersion: bigint;
-  expirationDate: bigint;
+  since: string;
+  cfVersion: string;
+  expirationDate: string;
   activeBots: string[];
 }
 
 export interface TokenBalance {
   token: string;
-  balance: bigint;
+  balance: string;
   isForbidden: boolean;
   isEnabled: boolean;
   isQuoted: boolean;
-  quota: bigint;
-  quotaRate: bigint;
-  quotaCumulativeIndexLU: bigint;
+  quota: string;
+  quotaRate: string;
+  quotaCumulativeIndexLU: string;
+}
+
+export interface TokenAndOwner {
+  addr: string;
+  token: string;
+  bal: string;
 }

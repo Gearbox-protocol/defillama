@@ -3,7 +3,10 @@ import type { ChainApi } from "@defillama/sdk";
 import { ADDRESS_PROVIDER_V3 } from "../constants";
 import { poolAbis } from "./abi";
 
-export async function getPools(block: number, api: ChainApi) {
+export async function getPools(
+  block: number,
+  api: ChainApi,
+): Promise<Array<[token: string, balance: string]>> {
   const contractsRegisterAddr: string = await api.call({
     block,
     abi: poolAbis["getAddressOrRevert"],
