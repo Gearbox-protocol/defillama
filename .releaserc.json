@@ -15,7 +15,18 @@
     [
       "@semantic-release/github",
       {
-        "assets": ["dist"]
+        "assets": [
+          {
+            "path": "dist/adapter/index.js",
+            "name": "adapter.js",
+            "label": "Gearbox adapter for DefiLlama/DefiLlama-Adapters"
+          },
+          {
+            "path": "dist/yield-server/index.js",
+            "name": "yield-server.js",
+            "label": "Gearbox adapter for DefiLlama/yield-server"
+          }
+        ]
       }
     ],
     [
