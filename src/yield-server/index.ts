@@ -9,6 +9,7 @@ import {
   GEAR_TOKEN,
   POOL_USDT_V3_BROKEN,
 } from "./constants";
+import { EXTRA_REWARDS } from "./extraRewards";
 import type {
   Address,
   BigNumberish,
@@ -19,7 +20,7 @@ import type {
   PoolDataV3,
   PoolInfoV3,
   SupplyInfo,
-  UnderlyingData,
+  TokenData,
 } from "./types";
 
 const SECONDS_PER_YEAR = 365n * 24n * 60n * 60n;
@@ -44,7 +45,7 @@ async function multiCall<T>(
  * Price is converted into bigint with 10^18 precision
  * See https://defillama.com/docs/api
  */
-async function getPrices(
+async function fetchLLamaPrices(
   chain: Chain,
   addresses: Address[],
 ): Promise<Record<Address, bigint>> {
@@ -57,17 +58,6 @@ async function getPrices(
     prices[address.toLowerCase() as Address] = BigInt(Number(WAD) * info.price);
   }
   return prices;
-}
-
-/**
- * Returns floating-point price of token
- * @param chain
- * @param address
- * @returns
- */
-async function getPrice(chain: Chain, address: Address): Promise<bigint> {
-  const prices = await getPrices(chain, [address]);
-  return Object.values(prices)[0];
 }
 
 /**
@@ -210,33 +200,39 @@ async function getPoolsV3(chain: Chain): Promise<PoolInfoV3[]> {
 }
 
 /**
- * Returns mapping between underlying tokens of pools (in lower case) and their symbols, decimals and prices
+ * Returns mapping between tokens (in lower case) and their symbols, decimals and prices
  */
-async function getUnderlyingTokensData(
+async function getTokensData(
   chain: Chain,
   pools: PoolInfoV3[],
-): Promise<Record<Address, UnderlyingData>> {
-  const underlyings = Array.from(
-    new Set(pools.map(p => p.underlying.toLowerCase() as Address)),
+): Promise<Record<Address, TokenData>> {
+  let tokens = pools.map(p => p.underlying);
+  tokens.push(GEAR_TOKEN);
+  tokens.push(
+    ...Object.values(EXTRA_REWARDS).flatMap(poolExtras =>
+      poolExtras.map(({ token }) => token),
+    ),
   );
+  tokens = Array.from(new Set(tokens.map(t => t.toLowerCase() as Address)));
+  const prices = await fetchLLamaPrices(chain, tokens);
+
   const symbols = await multiCall<string>({
     abi: abis.symbol,
-    calls: underlyings.map(target => ({ target })),
+    calls: tokens.map(target => ({ target })),
     chain,
   });
   const decimals = await multiCall<BigNumberish>({
     abi: abis.decimals,
-    calls: underlyings.map(target => ({ target })),
+    calls: tokens.map(target => ({ target })),
     chain,
   });
-  const prices = await getPrices(chain, underlyings);
-  const result: Record<Address, UnderlyingData> = {};
-  for (let i = 0; i < underlyings.length; i++) {
-    const underlying = underlyings[i];
-    result[underlying] = {
+  const result: Record<Address, TokenData> = {};
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    result[token] = {
       symbol: symbols[i],
       decimals: 10n ** BigInt(decimals[i]),
-      price: prices[underlying],
+      price: prices[token],
     };
   }
   return result;
@@ -245,7 +241,7 @@ async function getUnderlyingTokensData(
 function calcApyV3(
   info: FarmInfo<bigint>,
   supply: SupplyInfo,
-  gearPrice: bigint,
+  rewardPrice: bigint,
 ): number {
   const now = BigInt(Math.floor(Date.now() / 1000));
   if (info.finished <= now) {
@@ -254,7 +250,7 @@ function calcApyV3(
   if (supply.amount <= 0n) {
     return 0;
   }
-  if (supply.price === 0n || gearPrice === 0n) {
+  if (supply.price === 0n || rewardPrice === 0n) {
     return 0;
   }
   if (info.duration === 0n) {
@@ -262,7 +258,7 @@ function calcApyV3(
   }
 
   const supplyUsd = (supply.price * supply.amount) / supply.decimals;
-  const rewardUsd = (gearPrice * info.reward) / WAD;
+  const rewardUsd = (rewardPrice * info.reward) / WAD;
 
   return (
     Number(
@@ -284,14 +280,14 @@ function calculateTvl(
 
 function getApyV3(
   pools: PoolInfoV3[],
-  underlyings: Record<Address, UnderlyingData>,
-  gearPrice: bigint,
+  tokens: Record<Address, TokenData>,
   daoFees: Record<Address, bigint>,
 ) {
   return pools.map(pool => {
-    const underlyingPrice =
-      underlyings[pool.underlying.toLowerCase() as Address].price;
-    const daoFee = daoFees[pool.pool.toLowerCase() as Address] ?? 0;
+    const underlying = pool.underlying.toLowerCase() as Address;
+    const poolAddr = pool.pool.toLowerCase() as Address;
+    const underlyingPrice = tokens[underlying].price;
+    const daoFee = daoFees[poolAddr] ?? 0;
     const totalSupplyUsd = calculateTvl(
       pool.availableLiquidity,
       pool.totalBorrowed,
@@ -306,26 +302,37 @@ function getApyV3(
     );
     const tvlUsd = totalSupplyUsd - totalBorrowUsd;
     const dieselPrice = (underlyingPrice * pool.dieselRate) / RAY;
-    const apyReward = calcApyV3(
+
+    const supplyInfo: SupplyInfo = {
+      amount: pool.stakedDieselTokenSupply,
+      decimals: pool.decimals,
+      price: dieselPrice,
+    };
+    let apyRewardTotal = calcApyV3(
       pool.farmInfo,
-      {
-        amount: pool.stakedDieselTokenSupply,
-        decimals: pool.decimals,
-        price: dieselPrice,
-      },
-      gearPrice,
+      supplyInfo,
+      tokens[GEAR_TOKEN].price,
     );
+    const extraRewardTokens: Address[] = [];
+    for (const { token, getFarmInfo } of EXTRA_REWARDS[poolAddr] ?? []) {
+      extraRewardTokens.push(token);
+      const farmInfo = getFarmInfo(
+        BigInt(Math.floor(new Date().getTime() / 1000)),
+      );
+      const apyReward = calcApyV3(farmInfo, supplyInfo, tokens[token].price);
+      apyRewardTotal += apyReward;
+    }
 
     return {
-      pool: pool.pool,
+      pool: poolAddr,
       chain: "Ethereum",
       project: "gearbox",
-      symbol: underlyings[pool.underlying.toLowerCase() as Address].symbol,
+      symbol: tokens[underlying].symbol,
       tvlUsd: Number(tvlUsd),
       apyBase: (Number(pool.supplyRate) / 1e27) * 100,
-      apyReward,
+      apyReward: apyRewardTotal,
       underlyingTokens: [pool.underlying],
-      rewardTokens: [GEAR_TOKEN],
+      rewardTokens: [GEAR_TOKEN, ...extraRewardTokens],
       url: `https://app.gearbox.fi/pools/${pool.pool}`,
       // daoFee here is taken from last cm connected to this pool. in theory, it can be different for different CMs
       // in practice, it's 25% for v3 cms and 50% for v2 cms
@@ -342,11 +349,10 @@ function getApyV3(
 }
 
 async function getApy() {
-  const gearPrice = await getPrice("ethereum", GEAR_TOKEN);
   const daoFees = await getPoolsDaoFees("ethereum");
   const v3Pools = await getPoolsV3("ethereum");
-  const underlyings = await getUnderlyingTokensData("ethereum", v3Pools);
-  const pools = getApyV3(v3Pools, underlyings, gearPrice, daoFees);
+  const tokens = await getTokensData("ethereum", v3Pools);
+  const pools = getApyV3(v3Pools, tokens, daoFees);
   return pools.filter(i => keepFinite(i));
 }
 

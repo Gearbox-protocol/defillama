@@ -125,7 +125,7 @@ export interface PoolInfoV3 extends FarmingPoolData {
   decimals: bigint;
 }
 
-export interface UnderlyingData {
+export interface TokenData {
   symbol: string;
   decimals: bigint;
   price: bigint;
