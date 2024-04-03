@@ -23,14 +23,25 @@ async function addBanner(file) {
   await writeFile(file, content.replace("'use strict';", BANNER), "utf-8");
 }
 
+async function aliasDefillamaApi(file) {
+  const content = await readFile(file, "utf-8");
+  await writeFile(
+    file,
+    content.replace("@defillama/sdk", "@defillama/sdk5"),
+    "utf-8",
+  );
+}
+
 await build({
-  entry: ["src/adapter/index.ts"],
-  outDir: "dist/adapter",
+  entry: ["src/adapter/index.ts", "src/yield-server/index.ts"],
+  outDir: "dist",
   splitting: false,
   sourcemap: false,
   clean: true,
   treeshake: true,
   target: "node18",
-  external: ["../helper/cache/getLogs", "ethers", "@defillama/sdk"],
+  external: ["../helper/cache/getLogs", "../utils", "ethers", "@defillama/sdk"],
 });
 await addBanner("dist/adapter/index.js");
+await addBanner("dist/yield-server/index.js");
+await aliasDefillamaApi("dist/yield-server/index.js");
