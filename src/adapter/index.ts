@@ -11,11 +11,12 @@ interface ApiParameter {
 }
 
 async function tvl(
-  timestamp: number,
-  block: number,
+  _timestamp: number,
+  _block: number,
   _: unknown,
   { api }: ApiParameter,
 ): Promise<void> {
+  const block = await api.getBlock();
   // Pool TVL (Current token balances)
   const tokensAndOwners = await getPools(block, api);
 
