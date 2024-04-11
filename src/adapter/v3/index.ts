@@ -14,7 +14,7 @@ export async function getV3TVL(
 ): Promise<TokenAndOwner[]> {
   const dc300 = await api.call({
     abi: v3Abis["getAddressOrRevert"],
-    target: ADDRESS_PROVIDER_V3,
+    target: ADDRESS_PROVIDER_V3[api.chain],
     params: [
       // cast format-bytes32-string "DATA_COMPRESSOR"
       "0x444154415f434f4d50524553534f520000000000000000000000000000000000",

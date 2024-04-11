@@ -40,7 +40,7 @@ async function getCreditManagersV210(
 ): Promise<CreditManagerData[]> {
   const dataCompressor210: string = await api.call({
     abi: v2Abis["getAddressOrRevert"],
-    target: ADDRESS_PROVIDER_V3,
+    target: ADDRESS_PROVIDER_V3[api.chain],
     params: [
       // cast format-bytes32-string "DATA_COMPRESSOR"
       "0x444154415f434f4d50524553534f520000000000000000000000000000000000",
