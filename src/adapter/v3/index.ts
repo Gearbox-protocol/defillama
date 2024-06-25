@@ -54,25 +54,76 @@ async function getV3CAs(
   block: number,
   api: ChainApi,
 ): Promise<TokenAndOwner[]> {
-  const accs: CreditAccountData[] = await api.call({
-    // IDataCompressorV3_00__factory.createInterface().getFunction("getCreditAccountsByCreditManager").format(ethers.utils.FormatTypes.full)
-    target: dc300,
-    abi: v3Abis["getCreditAccountsByCreditManager"],
-    params: [creditManager, []] as any,
+  try {
+    const accs: CreditAccountData[] = await api.call({
+      // IDataCompressorV3_00__factory.createInterface().getFunction("getCreditAccountsByCreditManager").format(ethers.utils.FormatTypes.full)
+      target: dc300,
+      abi: v3Abis["getCreditAccountsByCreditManager"],
+      params: [creditManager, []] as any,
+      block,
+    });
+    const result: TokenAndOwner[] = [];
+    for (const acc of accs) {
+      for (const { balance, token } of acc.balances) {
+        // reduce noize
+        if (balance !== "0" && balance !== "1") {
+          result.push({
+            addr: acc.addr,
+            bal: balance,
+            token: token,
+          });
+        }
+      }
+    }
+    return result;
+  } catch (e) {
+    // console.error(`getV3CAs failed for ${creditManager}: ${e}`);
+    // for some creditManagers this will currently fail with out of gas error - this is the workaround
+    return getV3CAsWithoutCompressor(creditManager, block, api);
+  }
+}
+
+async function getV3CAsWithoutCompressor(
+  creditManager: string,
+  block: number,
+  api: ChainApi,
+): Promise<TokenAndOwner[]> {
+  const accs: string[] = await api.call({
+    target: creditManager,
+    abi: v3Abis["creditAccounts"],
+    params: [],
+    block,
+  });
+  const collateralTokensCount = await api.call({
+    target: creditManager,
+    abi: v3Abis["collateralTokensCount"],
+  });
+  const bitMasks: number[] = [];
+  for (let i = 0; i < collateralTokensCount; i++) {
+    bitMasks.push(1 << i);
+  }
+  const collateralTokens: string[] = await api.multiCall({
+    abi: v3Abis["getTokenByMask"],
+    calls: bitMasks.map(bm => ({
+      target: creditManager,
+      params: [bm],
+    })),
     block,
   });
   const result: TokenAndOwner[] = [];
-  for (const acc of accs) {
-    for (const { balance, token } of acc.balances) {
-      // reduce noize
-      if (balance !== "0" && balance !== "1") {
-        result.push({
-          addr: acc.addr,
-          bal: balance,
-          token: token,
-        });
+  for (const token of collateralTokens) {
+    const balances = await api.multiCall({
+      abi: "erc20:balanceOf",
+      calls: accs.map(owner => ({ target: token, params: [owner] })),
+      permitFailure: true,
+    });
+    for (let i = 0; i < balances.length; i++) {
+      const bal = balances[i];
+      if (bal) {
+        result.push({ token, addr: accs[i], bal });
       }
     }
   }
+
   return result;
 }
