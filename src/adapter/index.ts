@@ -49,6 +49,9 @@ export default {
   arbitrum: {
     tvl,
   },
+  optimism: {
+    tvl,
+  },
   methodology: `Retrieves the tokens in each Gearbox pool (WETH/DAI/WBTC/USDC/wstETH) & value of all Credit Accounts (V1/V2/V3) denominated in the underlying token.`,
   misrepresentedTokens: true,
 };
