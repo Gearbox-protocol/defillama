@@ -14,7 +14,7 @@
   "license": "BUSL-1.1",
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "node tsup.mjs && prettier --ignore-path '' --arrow-parens always --trailing-comma es5 --write ./dist",
+    "build": "node tsup.mjs",
     "prepare": "husky",
     "prettier": "prettier --write .",
     "prettier:ci": "npx prettier --check .",

@@ -1,4 +1,6 @@
+import { execSync } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 
 import { build } from "tsup";
 
@@ -45,3 +47,12 @@ await build({
 await addBanner("dist/adapter/index.js");
 await addBanner("dist/yield-server/index.js");
 await aliasDefillamaApi("dist/yield-server/index.js");
+
+const prettierPath = join(process.cwd(), "node_modules", ".bin", "prettier");
+
+execSync(
+  `${prettierPath} --ignore-path '' --arrow-parens always --trailing-comma es5 --write ./dist`,
+  {
+    stdio: "inherit",
+  },
+);
