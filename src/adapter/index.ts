@@ -4,7 +4,7 @@ import { getPools } from "./pools";
 import { getV1TVL } from "./v1";
 import type { TokenAndOwner } from "./v1/types";
 import { getV2TVL } from "./v2";
-import { getV3TVL } from "./v3";
+import { getV3Borrowed, getV3TVL } from "./v3";
 
 interface ApiParameter {
   api: ChainApi;
@@ -41,16 +41,32 @@ async function tvl(
   await api.sumTokens({ tokensAndOwners });
 }
 
+async function borrowed(
+  _timestamp: number,
+  _block: number,
+  _: unknown,
+  { api }: ApiParameter,
+): Promise<void> {
+  const block = await api.getBlock();
+  const borrowed = await getV3Borrowed(block, api);
+  for (const { token, bal } of borrowed) {
+    api.add(token, bal);
+  }
+}
+
 export default {
   hallmarks: [[1666569600, "LM begins"]],
   ethereum: {
     tvl,
+    borrowed,
   },
   arbitrum: {
     tvl,
+    borrowed,
   },
   optimism: {
     tvl,
+    borrowed,
   },
   methodology: `Retrieves the tokens in each Gearbox pool & value of all Credit Accounts (V1/V2/V3) denominated in the underlying token.`,
   misrepresentedTokens: true,

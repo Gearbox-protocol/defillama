@@ -100,3 +100,34 @@ export interface TokenAndOwner {
   token: string;
   bal: string;
 }
+
+export interface PoolDataV3 {
+  addr: string;
+  underlying: string;
+  dieselToken: string;
+  symbol: string;
+  name: string;
+  ///
+  baseInterestIndex: string;
+  availableLiquidity: string;
+  expectedLiquidity: string;
+  //
+  totalBorrowed: string;
+  totalDebtLimit: string;
+  // CreditManagerDebtParams[] creditManagerDebtParams;
+  totalAssets: string;
+  totalSupply: string;
+  supplyRate: string;
+  baseInterestRate: string;
+  dieselRate_RAY: string;
+  withdrawFee: string;
+  lastBaseInterestUpdate: string;
+  baseInterestIndexLU: string;
+  version: string;
+  poolQuotaKeeper: string;
+  gauge: string;
+  // QuotaInfo[] quotas;
+  // ZapperInfo[] zappers;
+  // LinearModel lirm;
+  // bool isPaused;
+}

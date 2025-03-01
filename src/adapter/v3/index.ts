@@ -5,6 +5,7 @@ import { v3Abis } from "./abi";
 import type {
   CreditAccountData,
   CreditManagerData,
+  PoolDataV3,
   TokenAndOwner,
 } from "./types";
 
@@ -12,16 +13,7 @@ export async function getV3TVL(
   block: number,
   api: ChainApi,
 ): Promise<TokenAndOwner[]> {
-  const dc300 = await api.call({
-    abi: v3Abis["getAddressOrRevert"],
-    target: ADDRESS_PROVIDER_V3[api.chain],
-    params: [
-      // cast format-bytes32-string "DATA_COMPRESSOR"
-      "0x444154415f434f4d50524553534f520000000000000000000000000000000000",
-      300,
-    ],
-    block,
-  });
+  const dc300 = await getDataCompressorV3(block, api);
   // Get Current CMs
   const creditManagers = await getCreditManagersV3(dc300, block, api);
   // Silently throw if no CAs available
@@ -98,9 +90,9 @@ async function getV3CAsWithoutCompressor(
     target: creditManager,
     abi: v3Abis["collateralTokensCount"],
   });
-  const bitMasks: number[] = [];
+  const bitMasks: bigint[] = [];
   for (let i = 0; i < collateralTokensCount; i++) {
-    bitMasks.push(1 << i);
+    bitMasks.push(1n << BigInt(i));
   }
   const collateralTokens: string[] = await api.multiCall({
     abi: v3Abis["getTokenByMask"],
@@ -126,4 +118,47 @@ async function getV3CAsWithoutCompressor(
   }
 
   return result;
+}
+
+export async function getV3Borrowed(
+  block: number,
+  api: ChainApi,
+): Promise<TokenAndOwner[]> {
+  const dc300 = await getDataCompressorV3(block, api);
+  // Get Current CMs
+  const pools = await getPoolsV3(dc300, block, api);
+  return pools.map(pool => ({
+    addr: pool.addr,
+    bal: pool.totalBorrowed,
+    token: pool.underlying,
+  }));
+}
+
+export async function getPoolsV3(
+  dc300: string,
+  block: number,
+  api: ChainApi,
+): Promise<PoolDataV3[]> {
+  return api.call({
+    // IDataCompressorV3_00__factory.createInterface().getFunction("getPoolsV3List").format(ethers.utils.FormatTypes.full)
+    abi: v3Abis["getPoolsV3List"],
+    target: dc300,
+    block,
+  });
+}
+
+export async function getDataCompressorV3(
+  block: number,
+  api: ChainApi,
+): Promise<string> {
+  return api.call({
+    abi: v3Abis["getAddressOrRevert"],
+    target: ADDRESS_PROVIDER_V3[api.chain],
+    params: [
+      // cast format-bytes32-string "DATA_COMPRESSOR"
+      "0x444154415f434f4d50524553534f520000000000000000000000000000000000",
+      300,
+    ],
+    block,
+  });
 }
