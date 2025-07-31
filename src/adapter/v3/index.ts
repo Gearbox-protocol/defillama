@@ -27,7 +27,7 @@ export async function getV3TVL(
   return caValues.flat();
 }
 
-export async function getCreditManagersV3(
+async function getCreditManagersV3(
   dc300: string,
   block: number,
   api: ChainApi,
@@ -134,7 +134,7 @@ export async function getV3Borrowed(
   }));
 }
 
-export async function getPoolsV3(
+async function getPoolsV3(
   dc300: string,
   block: number,
   api: ChainApi,
@@ -147,7 +147,7 @@ export async function getPoolsV3(
   });
 }
 
-export async function getDataCompressorV3(
+async function getDataCompressorV3(
   block: number,
   api: ChainApi,
 ): Promise<string> {
