@@ -63,9 +63,16 @@ async function borrowed(
 
 export default {
   ...Object.fromEntries(
-    ["ethereum", "arbitrum", "optimism", "sonic", "hemi", "lisk", "etlk"].map(
-      n => [n, { tvl, borrowed }],
-    ),
+    [
+      "ethereum",
+      "arbitrum",
+      "optimism",
+      "sonic",
+      "bsc",
+      "hemi",
+      "lisk",
+      "etlk",
+    ].map(n => [n, { tvl, borrowed }]),
   ),
   hallmarks: [[1666569600, "LM begins"]],
   methodology: `Retrieves the tokens in each Gearbox pool & value of all Credit Accounts (V1/V2/V3) denominated in the underlying token.`,
