@@ -1,7 +1,7 @@
 import type { ChainApi } from "@defillama/sdk";
 import { Contract } from "ethers";
 
-import { ADDRESS_PROVIDER_V3 } from "../constants";
+import { ADDRESS_PROVIDER_V300 } from "../constants";
 // @ts-ignore
 import { getLogs } from "../helper/cache/getLogs";
 import { v1Abis } from "./abi";
@@ -40,7 +40,7 @@ async function getCreditManagersV1(
   const contractsRegisterAddr: string = await api.call({
     block,
     abi: v1Abis["getAddressOrRevert"],
-    target: ADDRESS_PROVIDER_V3[api.chain],
+    target: ADDRESS_PROVIDER_V300[api.chain],
     params: [
       // cast format-bytes32-string "CONTRACTS_REGISTER"
       "0x434f4e5452414354535f52454749535445520000000000000000000000000000",

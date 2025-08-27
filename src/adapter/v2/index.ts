@@ -1,7 +1,7 @@
 import type { ChainApi } from "@defillama/sdk";
 import { Contract } from "ethers";
 
-import { ADDRESS_PROVIDER_V3 } from "../constants";
+import { ADDRESS_PROVIDER_V300 } from "../constants";
 // @ts-ignore
 import { getLogs } from "../helper/cache/getLogs";
 import { v2Abis } from "./abi";
@@ -40,7 +40,7 @@ async function getCreditManagersV210(
 ): Promise<CreditManagerData[]> {
   const dataCompressor210: string = await api.call({
     abi: v2Abis["getAddressOrRevert"],
-    target: ADDRESS_PROVIDER_V3[api.chain],
+    target: ADDRESS_PROVIDER_V300[api.chain],
     params: [
       // cast format-bytes32-string "DATA_COMPRESSOR"
       "0x444154415f434f4d50524553534f520000000000000000000000000000000000",
