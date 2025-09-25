@@ -72,6 +72,7 @@ export default {
       "hemi",
       "lisk",
       "etlk",
+      "plasma",
     ].map(n => [n, { tvl, borrowed }]),
   ),
   hallmarks: [[1666569600, "LM begins"]],
