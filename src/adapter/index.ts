@@ -73,6 +73,8 @@ export default {
       "lisk",
       "etlk",
       "plasma",
+      "monad",
+      "somnia",
     ].map(n => [n, { tvl, borrowed }]),
   ),
   hallmarks: [[1666569600, "LM begins"]],
